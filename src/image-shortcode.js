@@ -7,7 +7,7 @@
 // @ts-check
 
 import { PACKAGE_NAME } from './consts.js';
-import { joinPosixPath, getImageData } from './utils.js';
+import { joinPosixPath, getImageData, getImageFiles, getLargestFile } from './utils.js';
 
 /**
  * @typedef {Object} ShortcodeArgs
@@ -54,7 +54,7 @@ export function addImageShortcode(eleventyConfig, shortcodeName, zones) {
  * @property {string} baseUrl The base URL for the images.
  * @property {string} [classAttr] The class attribute for the image.
  * @property {number} [defaultImageWidth] The width of the default image to use for the src attribute.
- * @property {Object<string, import('./utils.js').ImdexerImageData>} imdexer The imdexer object containing data for the images.
+ * @property {import('./utils.js').Imdexer} imdexer The imdexer object containing data for the images.
  * @property {boolean} [lazy] Whether to use lazy loading for the image.
  * @property {string} [sizes] The sizes attribute for the image.
  * @property {string} src The source of the image.
@@ -82,17 +82,12 @@ function generateImageTag({ alt, baseUrl, classAttr, defaultImageWidth, imdexer,
     throw new Error(`Missing \`src\` attribute for image: ${src}`);
   }
 
-  // Get the image data from the imdexer
-  const data = imdexer[src];
-  if (!data) {
-    throw new Error(`Missing image data for image: ${src}`);
-  }
+  // Get the image files from the imdexer
+  const { isGroup, files } = getImageFiles(imdexer, src);
 
   // If this is a single (non-grouped) image, return a simple image tag
-  if (!data.files) {
-    // Get the image size from the image data
-    const width = data.width;
-    const height = data.height;
+  if (!isGroup) {
+    const { width, height } = files[0];
 
     // Correctly join the base URL and the image source
     const fullSrc = joinPosixPath(baseUrl, src);
@@ -105,32 +100,27 @@ function generateImageTag({ alt, baseUrl, classAttr, defaultImageWidth, imdexer,
   }
 
   // If we are here, this is a grouped image, so let's generate a responsive image tag
-  const files = data.files;
 
   // Generate the srcset attribute
-  const srcset = Object.keys(files).map(file => {
-    const fullSrc = joinPosixPath(baseUrl, file);
-    return `${fullSrc} ${files[file].width}w`;
-  }).join(', ');
+  const srcset = files.map(file => `${joinPosixPath(baseUrl, file.path)} ${file.width}w`).join(', ');
 
   // If defaultImageWidth is provided, find the image with that width
-  let defaultImageRecord;
+  let defaultFile;
   if (defaultImageWidth) {
-    defaultImageRecord = Object.entries(files).find(([_, value]) => value.width === defaultImageWidth);
-    if (!defaultImageRecord) {
+    defaultFile = files.find(file => file.width === defaultImageWidth);
+    if (!defaultFile) {
       throw new Error(`No image found with width ${defaultImageWidth} for image: ${src}`);
     }
   } else {
     // Otherwise, find the largest image based on the width
-    defaultImageRecord = Object.entries(files).reduce((a, b) => a[1].width > b[1].width ? a : b);
+    defaultFile = getLargestFile(files);
   }
 
   // Get the full source of the default image
-  const defaultImage = joinPosixPath(baseUrl, defaultImageRecord[0]);
+  const defaultImage = joinPosixPath(baseUrl, defaultFile.path);
 
   // Get the width and height of the default image
-  const width = defaultImageRecord[1].width;
-  const height = defaultImageRecord[1].height;
+  const { width, height } = defaultFile;
 
   // Add the lazy loading attribute if it's set to true
   const loadingAttr = lazy ? 'loading="lazy"' : '';

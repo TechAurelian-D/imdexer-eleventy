@@ -8,11 +8,12 @@
 
 import { addImageShortcode } from "./src/image-shortcode.js";
 import { addImageUrlFilter } from "./src/image-filter.js";
+import { assertSupportedIndexes } from "./src/utils.js";
 
 /**
  * @typedef {Object} ImageZone
  * @property {string} [prefix] The prefix for the image source.
- * @property {Object<string, Object>} imdexer The imdexer object containing data for the images.
+ * @property {import('./src/utils.js').Imdexer} imdexer The imdexer object containing data for the images.
  * @property {string} baseUrl The base URL for the images.
  */
 
@@ -31,6 +32,7 @@ import { addImageUrlFilter } from "./src/image-filter.js";
  */
 export default function (eleventyConfig, options) {
   // TODO: Validate options
+  assertSupportedIndexes(options.zones);
 
   if (options.imgShortcode) {
     addImageShortcode(eleventyConfig, options.imgShortcode, options.zones);

@@ -7,3 +7,13 @@ Handling responsive images in web development can be a complex and tedious task.
 The `imdexer-eleventy` plugin simplifies this process by automatically generating responsive `<img>` tags for your Eleventy site. It leverages the power of [imdexer](https://github.com/TechAurelian-D/imdexer), a tool that creates an index of your images and their different sizes. By providing this index to `imdexer-eleventy`, along with a simple configuration, the plugin intelligently constructs the `<img>` tags with all the necessary attributes for optimal image delivery. The plugin uses the image metadata from `imdexer` to add the `width` and `height` attributes to the `<img>` tag, preventing CLS.
 
 Using `imdexer-eleventy` offers several key benefits. First, it significantly improves your website's performance by ensuring that the browser can download the most appropriate image size for each user's viewport. Second, it enhances the user experience by eliminating layout shifts caused by images loading without specified dimensions. Finally, it streamlines your development workflow by automating the complex task of responsive image management, allowing you to focus on creating great content.
+
+## Requirements
+
+The plugin reads indexes in format version 2, which imdexer 2.0.0 and later write. Given an index in another format, it stops with an error that names the zone. Regenerate that index with `imdexer --rebuild`.
+
+## Tests
+
+```bash
+$ npm test
+```

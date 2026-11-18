@@ -6,7 +6,7 @@
 
 // @ts-check
 
-import { joinPosixPath, getImageData } from './utils.js';
+import { joinPosixPath, getImageData, getImageFiles, getLargestFile } from './utils.js';
 
 /**
  * Adds the specified imageUrl filter to Eleventy.
@@ -29,20 +29,9 @@ export function addImageUrlFilter(eleventyConfig, filterName, zones) {
     /** @type {import('./utils.js').ImageData} */
     const data = getImageData(src, zones);
 
-    // Get the image data from the imdexer
-    const imdexerImageData = data.imdexer[data.imageSrc];
-    if (!imdexerImageData) {
-      throw new Error(`Missing image data for image: ${data.imageSrc}`);
-    }
-
-    // If this is a single (non-grouped) image, return the image URL
-    if (!imdexerImageData.files) {
-      return joinPosixPath(data.baseUrl, data.imageSrc);
-    }
-    
-    // If we are here, this is a grouped image, so return the image URL for the largest image in the group
-    const largestImageRecord = Object.entries(imdexerImageData.files).reduce((a, b) => a[1].width > b[1].width ? a : b);
-    return joinPosixPath(data.baseUrl, largestImageRecord[0]);
+    // A single image has one file, so the largest file is the right one for both kinds
+    const { files } = getImageFiles(data.imdexer, data.imageSrc);
+    return joinPosixPath(data.baseUrl, getLargestFile(files).path);
   };
 
   // Add the filter to Eleventy
