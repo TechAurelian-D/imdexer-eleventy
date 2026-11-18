@@ -4,7 +4,8 @@
   "version": "2.0.0",
   "main": ".eleventy.js",
   "scripts": {
-    "test": "node --test"
+    "test": "npm run typecheck && node --test",
+    "typecheck": "tsc"
   },
   "type": "module",
   "repository": {
@@ -16,5 +17,9 @@
     "email": "dev@techaurelian.com",
     "url": "https://techaurelian.com/"
   },
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
+  }
 }

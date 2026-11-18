@@ -146,3 +146,5 @@ The skill describes the version of the plugin it is shipped with, which can be n
 ```bash
 $ npm test
 ```
+
+The command checks the types of the code first and runs the tests only if that check passes. The code is JavaScript with its types written in JSDoc comments, so nothing is compiled. To run the type check alone, use `npm run typecheck`.

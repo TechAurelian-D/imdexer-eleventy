@@ -8,7 +8,10 @@ import { describe, it } from 'node:test';
 
 import imdexerEleventy from '../.eleventy.js';
 
-/** An index in the current format, with one single image and one group. */
+/**
+ * An index in the current format, with one single image and one group.
+ * @type {import('../src/utils.js').Imdexer}
+ */
 const INDEX = {
   version: 2,
   separator: '_',
@@ -21,19 +24,21 @@ const INDEX = {
 /**
  * Registers the plugin on a stand-in for the Eleventy configuration object.
  *
- * @param {Array<Object>} zones The image zones to configure the plugin with.
+ * @param {Array<import('../.eleventy.js').ImageZone>} zones The image zones to configure the
+ * plugin with.
  * @returns {{ img: Function, url: Function }} The registered shortcode and filter.
  */
 function setUp(zones) {
+  /** @type {Record<string, Function>} */
   const registered = {};
   const eleventyConfig = {
-    addShortcode: (name, fn) => { registered[name] = fn; },
-    addFilter: (name, fn) => { registered[name] = fn; },
+    addShortcode: (/** @type {string} */ name, /** @type {Function} */ fn) => { registered[name] = fn; },
+    addFilter: (/** @type {string} */ name, /** @type {Function} */ fn) => { registered[name] = fn; },
   };
 
   imdexerEleventy(eleventyConfig, { imgShortcode: 'img', imgUrlFilter: 'url', zones });
 
-  return registered;
+  return { img: registered.img, url: registered.url };
 }
 
 describe('image shortcode', () => {
@@ -103,7 +108,8 @@ describe('image URL filter', () => {
 
 describe('index format check', () => {
   it('rejects an index in the old format and says how to regenerate it', () => {
-    const oldIndex = { 'icons/logo.svg': { width: 100, height: 50 } };
+    // Typed loosely on purpose: an old index does not have the shape the plugin declares
+    const oldIndex = /** @type {any} */ ({ 'icons/logo.svg': { width: 100, height: 50 } });
 
     assert.throws(
       () => setUp([{ prefix: 'static://', imdexer: oldIndex, baseUrl: '/' }]),
